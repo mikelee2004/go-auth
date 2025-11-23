@@ -2,26 +2,27 @@ package handlers
 
 import (
 	"auth-go/internal/models"
+	"auth-go/internal/repositories"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
-	DB *gorm.DB
+	userRepo *repositories.UserRepository
 	JWTSecret string
 }
 
-func NewAuthHandler(db *gorm.DB, jwtSecret string) *AuthHandler {
+func NewAuthHandler(userRepo *repositories.UserRepository, jwtSecret string) *AuthHandler {
 	return &AuthHandler{
-		DB: db,
+		userRepo: userRepo,
 		JWTSecret: jwtSecret,
 	}
 }
 
 type RegisterRequest struct {
-	Email string `json:"email" binding:"required,email"`
 	Username string `json:"username" binding:"required,min=3"`
+	Email string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
 }
 
@@ -41,49 +42,27 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 	user := models.User{
+		Username: req.Username,
 		Email: req.Email,
 		Password: req.Password,
 	}
 
-	result := h.DB.Create(&user)
-	if result.Error != nil {
-		c.JSON(http.StatusConflict, gin.H{
-			"message": result.Error,
-		})
-		return
+	if err := h.userRepo.CreateUser(&user); err != nil {
+		if err == repositories.ErrUserExists {
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "user with this email already exists",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to create User!",
+			})
+		}
+		return 
 	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "User is successfully created",
-		"user_id": user.ID,
-	})
+	
+	// TODO: Return success or failure response
+	// If success: return user and JWT token
+	// Else: return error code
 }
 
-func (h *AuthHandler) Login(c *gin.Context) {
-	var req LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	var user models.User
-	result := h.DB.Where("email = ?", req.Email).First(&user)
-	if result.Error != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Incorrect Login or Password",
-		})
-		return
-	}
-
-	// check password
-	if err := user.CheckPassword(req.Password); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Incorrect Login or Password",
-		})
-		return
-	}
-
-
-}
+// TODO: Login handler
