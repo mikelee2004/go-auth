@@ -3,16 +3,17 @@ package repositories
 import (
 	"auth-go/internal/models"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
 
 type UserRepository struct {
-	DB *gorm.DB
+	db *gorm.DB
 }
 
-func NewUserRepositories(db *gorm.DB) *UserRepository {
-	return &UserRepository{DB: db}
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
 var (
@@ -21,13 +22,16 @@ var (
 )
 
 func (r *UserRepository) CreateUser(user *models.User) error {
-	result := r.DB.Create(&user)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
-			return ErrUserExists
-		}
-		return result.Error
+	var existingUser models.User
+	result := r.db.Where("email = ?", user.Email).First(&existingUser)
+	if result.Error == nil {
+		return fmt.Errorf("this email is already taken")
 	}
+
+	if err := r.db.Create(user).Error; err != nil {
+		return fmt.Errorf("failed to create user: ", err)
+	}
+
 	return nil
 }
 

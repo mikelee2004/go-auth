@@ -1,8 +1,8 @@
 package main
 
 import (
-	"auth-go/internal/config"
 	"auth-go/internal/database"
+	"auth-go/internal/handlers"
 	"auth-go/internal/repositories"
 	"log"
 
@@ -10,12 +10,21 @@ import (
 )
 
 func main() {
-	cfg := config.LoadDatabaseConfig()
-	db := database.InitializeDB(cfg)
-	
-	userRepo := repositories.UserRepository(db)
+	db := database.InitializeDB()
+
 	r := gin.Default()
+
+	// repositories
+	userRepository := repositories.NewUserRepository(db)
+
+	// handlers
+	authHandler := handlers.NewAuthHandler(userRepository)
+
+	// routes (TODO: Move them to the app/routes.go dir)
+	r.POST("/register", authHandler.Register)
+
+	// server
 	if err := r.Run(); err != nil {
-		log.Fatalf("Failed to run a server: %v", err)
+		log.Fatalf("Failed to run server: ", err)
 	}
 }

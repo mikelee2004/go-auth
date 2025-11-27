@@ -10,13 +10,11 @@ import (
 
 type AuthHandler struct {
 	userRepo *repositories.UserRepository
-	JWTSecret string
 }
 
-func NewAuthHandler(userRepo *repositories.UserRepository, jwtSecret string) *AuthHandler {
+func NewAuthHandler(userRepo *repositories.UserRepository) *AuthHandler {
 	return &AuthHandler{
 		userRepo: userRepo,
-		JWTSecret: jwtSecret,
 	}
 }
 
@@ -41,6 +39,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		})
 		return
 	}
+	
 	user := models.User{
 		Username: req.Username,
 		Email: req.Email,
@@ -60,9 +59,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return 
 	}
 	
-	// TODO: Return success or failure response
-	// If success: return user and JWT token
-	// Else: return error code
+	if err := user.HashPassword(); err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "Failed to hash password!",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User registered successfully",
+		"user":    user,
+	})
 }
 
 // TODO: Login handler
