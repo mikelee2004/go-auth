@@ -1,7 +1,7 @@
 package main
 
 import (
-	"auth-go/app"
+	"auth-go/api"
 	"auth-go/internal/database"
 	"auth-go/internal/handlers"
 	"auth-go/internal/repositories"
@@ -19,7 +19,7 @@ func main() {
     authHandler := handlers.NewAuthHandler(userRepo)
     
     // router
-    router := app.SetupRouter(*authHandler)
+    router := api.SetupRouter(*authHandler)
 
     log.Println("Server starting on :8080")
     router.Run(":8080")
