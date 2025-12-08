@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TODO: Configure routes
 func SetupRouter(userHandler handlers.AuthHandler) *gin.Engine {
 	router := gin.Default()
 	api := router.Group("/api")

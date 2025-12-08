@@ -9,16 +9,16 @@ import (
 )
 
 func main() {
-    // Инициализация базы данных
+    // db
     db := database.InitializeDB()
 
-    // Инициализация репозитория
+    // repositories
     userRepo := repositories.NewUserRepository(db)
     
-    // Инициализация хендлера
+    // handels
     authHandler := handlers.NewAuthHandler(userRepo)
     
-    // Настройка роутера
+    // router
     router := app.SetupRouter(*authHandler)
 
     log.Println("Server starting on :8080")
