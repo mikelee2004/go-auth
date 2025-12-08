@@ -22,6 +22,11 @@ var (
 )
 
 func (r *UserRepository) CreateUser(user *models.User) error {
+	
+    if r.db == nil {
+        return fmt.Errorf("database connection is nil in UserRepository")
+    }
+
 	var existingUser models.User
 	result := r.db.Where("email = ?", user.Email).First(&existingUser)
 	if result.Error == nil {
@@ -29,7 +34,7 @@ func (r *UserRepository) CreateUser(user *models.User) error {
 	}
 
 	if err := r.db.Create(user).Error; err != nil {
-		return fmt.Errorf("failed to create user: ", err)
+		return fmt.Errorf("failed to create user: %w", err)
 	}
 
 	return nil

@@ -1,30 +1,26 @@
 package main
 
 import (
+	"auth-go/app"
 	"auth-go/internal/database"
 	"auth-go/internal/handlers"
 	"auth-go/internal/repositories"
 	"log"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	db := database.InitializeDB()
+    // Инициализация базы данных
+    db := database.InitializeDB()
 
-	r := gin.Default()
+    // Инициализация репозитория
+    userRepo := repositories.NewUserRepository(db)
+    
+    // Инициализация хендлера
+    authHandler := handlers.NewAuthHandler(userRepo)
+    
+    // Настройка роутера
+    router := app.SetupRouter(*authHandler)
 
-	// repositories
-	userRepository := repositories.NewUserRepository(db)
-
-	// handlers
-	authHandler := handlers.NewAuthHandler(userRepository)
-
-	// routes (TODO: Move them to the app/routes.go dir)
-	r.POST("/register", authHandler.Register)
-
-	// server
-	if err := r.Run(); err != nil {
-		log.Fatalf("Failed to run server: ", err)
-	}
+    log.Println("Server starting on :8080")
+    router.Run(":8080")
 }

@@ -31,7 +31,7 @@ type LoginRequest struct {
 
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
-
+	
 	// validating register data
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -40,13 +40,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 	
-	user := models.User{
-		Username: req.Username,
+	user := &models.User{
 		Email: req.Email,
+		Name: req.Username,
 		Password: req.Password,
 	}
 
-	if err := h.userRepo.CreateUser(&user); err != nil {
+	if err := h.userRepo.CreateUser(user); err != nil {
 		if err == repositories.ErrUserExists {
 			c.JSON(http.StatusConflict, gin.H{
 				"error": "user with this email already exists",
