@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"auth-go/internal/models"
-	"errors"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -16,19 +15,14 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-var (
-	ErrUserNotFound = errors.New("user not found")
-	ErrUserExists = errors.New("user already exists")
-)
-
 func (r *UserRepository) CreateUser(user *models.User) error {
-	
-    if r.db == nil {
-        return fmt.Errorf("database connection is nil in UserRepository")
-    }
+
+	if r.db == nil {
+		return fmt.Errorf("database connection is nil in UserRepository")
+	}
 
 	var existingUser models.User
-	result := r.db.Where("email = ?", user.Email).First(&existingUser)
+	result := r.db.Where("email = ? OR username = ?", user.Email, user.Username).First(&existingUser)
 	if result.Error == nil {
 		return fmt.Errorf("this email is already taken")
 	}

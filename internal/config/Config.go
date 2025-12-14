@@ -1,19 +1,28 @@
 package config
 
+import (
+	"os"
+)
+
 type DatabaseConfig struct {
-	DBHost string
-	DBPort string
-	DBName string
+	DBHost     string
+	DBPort     string
+	DBName     string
 	DBPassword string
-	DBUser string
+	DBUser     string
+}
+
+type AppConfig struct {
+	JWTSecret string
+	JWTTTL    int // in hours
 }
 
 func LoadDatabaseConfig() *DatabaseConfig {
 	return &DatabaseConfig{
-		DBHost: "localhost",
-		DBPort: "5432",
-		DBName: "auth",
-		DBPassword: "3791",
-		DBUser: "postgres",
+		DBHost:     os.Getenv("DB_HOST"),
+		DBPort:     os.Getenv("DB_PORT"),
+		DBName:     os.Getenv("DB_NAME"),
+		DBPassword: os.Getenv("DB_PASSWORD"),
+		DBUser:     os.Getenv("DB_USER"),
 	}
 }
